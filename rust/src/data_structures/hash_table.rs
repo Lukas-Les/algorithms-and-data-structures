@@ -1,3 +1,5 @@
+use hashing::Hashable;
+
 pub mod hashing {
     const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
     const FNV_PRIME: u64 = 0x100000001b3;
@@ -29,6 +31,17 @@ pub mod hashing {
     }
 }
 
+
+struct Entry<K: Hashable, V> {
+    key: K,
+    value: V,
+}
+
+impl <K: Hashable, V>Entry<K, V> {
+    fn new(key: K, value: V) -> Self {
+        Entry { key, value }
+    }
+}
 
 #[cfg(test)]
 mod tests {
