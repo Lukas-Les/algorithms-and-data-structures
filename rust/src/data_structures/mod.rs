@@ -1,1 +1,2 @@
-pub mod trie;
+pub mod hash_table;
+pub mod trie; 
