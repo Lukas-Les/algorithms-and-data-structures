@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use hashing::Hashable;
 
 pub mod hashing {
@@ -31,21 +33,39 @@ pub mod hashing {
     }
 }
 
+const TABLE_SIZE: usize = 10;
 
-struct Entry<K: Hashable, V> {
-    key: K,
-    value: V,
+
+struct HashTable<V: Debug> {
+    table: [Option<V>; TABLE_SIZE],
 }
 
-impl <K: Hashable, V>Entry<K, V> {
-    fn new(key: K, value: V) -> Self {
-        Entry { key, value }
+impl <V: Debug> HashTable<V> {
+    pub fn new() -> Self {
+        Self {
+            table: [(); TABLE_SIZE].map(|_| None),
+        }
+    }
+
+    pub fn insert<K: Hashable>(&mut self, key: K, value: V) -> () 
+    {
+        let index: usize = key.hash() as usize % TABLE_SIZE;
+        self.table[index] = Some(value);
+    }
+
+    pub fn print(&self) -> () {
+        for i in 0..TABLE_SIZE {
+            if let Some(value) = &self.table[i] {
+                println!("{}: {:?}", i, value);
+            }
+        }
     }
 }
 
+
 #[cfg(test)]
 mod tests {
-    use super::hashing::Hashable;
+    use super::{hashing::Hashable, HashTable};
 
     #[test]
     fn test_fnv1a_hash_str() {
@@ -58,5 +78,16 @@ mod tests {
         let n: i32 = 69;
         let hash_sum = n.hash();
         assert_eq!(hash_sum, 3164654411128539488);
+    }
+
+    #[test]
+    fn test_hash_table() {
+        let mut dict: HashTable<&str> = HashTable::<&str>::new();
+        dict.insert("greeting", "hello");
+        dict.insert("farewell", "bye");
+        dict.insert("color", "green");
+        dict.insert("shape", "square");
+
+        dict.print();
     }
 }
