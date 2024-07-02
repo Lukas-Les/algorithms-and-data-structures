@@ -33,31 +33,62 @@ pub mod hashing {
     }
 }
 
-const TABLE_SIZE: usize = 10;
+const TABLE_SIZE: usize = 3;
 
 
-struct HashTable<V: Debug> {
-    table: [Option<V>; TABLE_SIZE],
+struct Entry<K, V> {
+    key: K,
+    value: Option<V>,
+    next: Option<Box<Entry<K, V>>>,
 }
 
-impl <V: Debug> HashTable<V> {
+impl <K, V> Entry<K, V> {
+    fn new(key: K, value: Option<V>) -> Self {
+        Self {
+            key,
+            value,
+            next: None,
+        }
+    }
+}
+
+struct HashTable<K, V: Debug> {
+    table: [Option<Box<Entry<K, V>>>; TABLE_SIZE],
+}
+
+impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
     pub fn new() -> Self {
         Self {
             table: [(); TABLE_SIZE].map(|_| None),
         }
     }
 
-    pub fn insert<K: Hashable>(&mut self, key: K, value: V) -> () 
-    {
+    pub fn insert(&mut self, key: K, value: V) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
-        self.table[index] = Some(value);
+        let mut new_entry = Box::new(Entry::new(key, Some(value)));
+
+        if let Some(mut current_entry) = self.table[index].take() {
+            while let Some(next_entry) = current_entry.next {
+                current_entry = next_entry;
+            }
+            current_entry.next = Some(new_entry);
+            self.table[index] = Some(current_entry);
+        } else {
+            self.table[index] = Some(new_entry);
+        }
     }
 
     pub fn print(&self) -> () {
-        for i in 0..TABLE_SIZE {
-            if let Some(value) = &self.table[i] {
-                println!("{}: {:?}", i, value);
+        for (index, entry) in self.table.iter().enumerate() {
+            print!("{}\t", index);
+            let mut current_entry = entry;
+            while let Some(entry) = current_entry {
+                if let Some(value) = &entry.value {
+                    print!("{:?} ->", value);
+                }
+                current_entry = &entry.next;
             }
+            println!("None");
         }
     }
 }
@@ -82,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_hash_table() {
-        let mut dict: HashTable<&str> = HashTable::<&str>::new();
+        let mut dict = HashTable::<&str, &str>::new();
         dict.insert("greeting", "hello");
         dict.insert("farewell", "bye");
         dict.insert("color", "green");
