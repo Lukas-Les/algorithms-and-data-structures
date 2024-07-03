@@ -65,7 +65,7 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
 
     pub fn insert(&mut self, key: K, value: V) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
-        let mut new_entry = Box::new(Entry::new(key,value));
+        let new_entry = Box::new(Entry::new(key,value));
 
         if let Some(mut current_entry) = self.table[index].take() {
             while let Some(next_entry) = current_entry.next {
@@ -129,8 +129,7 @@ mod tests {
         dict.insert("color", "green");
         dict.insert("shape", "square");
 
-        dict.print();
-        print!("\n");
-        println!("{:?}", dict.get("not existing").unwrap_or(&"None"));
+        let found = *dict.get("greeting").unwrap();
+        assert_eq!(found, "hello");
     }
 }
