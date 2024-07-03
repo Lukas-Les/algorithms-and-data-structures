@@ -38,12 +38,12 @@ const TABLE_SIZE: usize = 3;
 
 struct Entry<K, V> {
     key: K,
-    value: Option<V>,
+    value: V,
     next: Option<Box<Entry<K, V>>>,
 }
 
 impl <K, V> Entry<K, V> {
-    fn new(key: K, value: Option<V>) -> Self {
+    fn new(key: K, value: V) -> Self {
         Self {
             key,
             value,
@@ -65,7 +65,7 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
 
     pub fn insert(&mut self, key: K, value: V) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
-        let mut new_entry = Box::new(Entry::new(key, Some(value)));
+        let mut new_entry = Box::new(Entry::new(key,value));
 
         if let Some(mut current_entry) = self.table[index].take() {
             while let Some(next_entry) = current_entry.next {
@@ -78,14 +78,24 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         }
     }
 
+    pub fn get(&self, key: K) -> Option<&V>{
+        let index: usize = key.hash() as usize % TABLE_SIZE;
+        let mut current_entry = &self.table[index];
+        while let Some(entry) = current_entry {
+            if entry.key == key {
+                return Some(&entry.value);
+            }
+            current_entry = &entry.next;
+        }
+        None
+    }
+
     pub fn print(&self) -> () {
         for (index, entry) in self.table.iter().enumerate() {
             print!("{}\t", index);
             let mut current_entry = entry;
             while let Some(entry) = current_entry {
-                if let Some(value) = &entry.value {
-                    print!("{:?} ->", value);
-                }
+                print!("{:?} ->", &entry.value);
                 current_entry = &entry.next;
             }
             println!("None");
@@ -120,5 +130,7 @@ mod tests {
         dict.insert("shape", "square");
 
         dict.print();
+        print!("\n");
+        println!("{:?}", dict.get("not existing").unwrap_or(&"None"));
     }
 }
