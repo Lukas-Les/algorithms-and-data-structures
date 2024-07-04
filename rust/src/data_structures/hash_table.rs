@@ -90,6 +90,19 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         None
     }
 
+    pub fn delete(&mut self, key: K) -> () {
+        let index: usize = key.hash() as usize % TABLE_SIZE;
+        let mut current_entry = &mut self.table[index];
+        let mut previous_entry: &Option<Box<Entry<K, V>>>;
+        while let Some(ref mut entry) = current_entry {
+            if entry.key == key {
+                *current_entry = entry.next.take();
+                return;
+            }
+            current_entry = &mut entry.next;
+        }
+    }
+
     pub fn print(&self) -> () {
         for (index, entry) in self.table.iter().enumerate() {
             print!("{}\t", index);
