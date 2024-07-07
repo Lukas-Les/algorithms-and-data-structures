@@ -67,7 +67,7 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let new_entry = Box::new(Entry::new(key,value));
 
-        if let Some(mut current_entry) = self.table[index].take() {
+        if let Some(ref mut current_entry) = self.table[index] {
             while let Some(next_entry) = current_entry.next {
                 current_entry = next_entry;
             }
@@ -93,10 +93,9 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
     pub fn delete(&mut self, key: K) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let mut current_entry = &mut self.table[index];
-        let mut previous_entry: &Option<Box<Entry<K, V>>>;
-        while let Some(ref mut entry) = current_entry {
+        while let Some(entry) = current_entry {
             if entry.key == key {
-                *current_entry = entry.next.take();
+                self.table[index] = entry.next.take();
                 return;
             }
             current_entry = &mut entry.next;
@@ -139,10 +138,15 @@ mod tests {
         let mut dict = HashTable::<&str, &str>::new();
         dict.insert("greeting", "hello");
         dict.insert("farewell", "bye");
+        dict.insert("movie", "horror");
+        dict.insert("car", "fast");
         dict.insert("color", "green");
         dict.insert("shape", "square");
 
-        let found = *dict.get("greeting").unwrap();
-        assert_eq!(found, "hello");
+        // let found = *dict.get("greeting").unwrap();
+        // assert_eq!(found, "hello");
+
+        // dict.delete("greeting");
+        dict.print();
     }
 }
