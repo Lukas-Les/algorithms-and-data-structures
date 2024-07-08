@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, fmt::Debug, io::Cursor, ops::Deref};
 
 use hashing::Hashable;
 
@@ -65,16 +65,25 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
 
     pub fn insert(&mut self, key: K, value: V) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
-        let new_entry = Box::new(Entry::new(key,value));
-
-        if let Some(ref mut current_entry) = self.table[index] {
-            while let Some(next_entry) = current_entry.next {
-                current_entry = next_entry;
-            }
-            current_entry.next = Some(new_entry);
-            self.table[index] = Some(current_entry);
-        } else {
-            self.table[index] = Some(new_entry);
+        let mut new_entry = Box::new(Entry::new(key,value));
+        let current_entry = &mut self.table[index];
+        match current_entry {
+            Some(head) => {
+                let mut cursor = head;
+                loop {
+                    if cursor.key == new_entry.key {
+                        new_entry.next = cursor.next.take();
+                        *cursor = new_entry;
+                        return;
+                    }
+                    if cursor.next.is_none() {
+                        cursor.next = Some(new_entry);
+                        return;
+                    }
+                    cursor = cursor.next.as_mut().unwrap();
+                }
+            },
+            None => *current_entry = Some(new_entry),
         }
     }
 
@@ -93,12 +102,20 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
     pub fn delete(&mut self, key: K) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let mut current_entry = &mut self.table[index];
-        while let Some(entry) = current_entry {
-            if entry.key == key {
-                self.table[index] = entry.next.take();
-                return;
+        if let Some(mut head) = current_entry.take() {
+            if head.key == key {
+                *current_entry = head.next.take();
+            } else {
+                let mut cursor = &mut head;
+                while let Some(next) = cursor.next.as_mut() {
+                    if next.key == key {
+                        cursor.next = next.next.take();
+                        break;
+                    }
+                    cursor = next;
+                }
+                *current_entry = Some(head);
             }
-            current_entry = &mut entry.next;
         }
     }
 
@@ -142,6 +159,8 @@ mod tests {
         dict.insert("car", "fast");
         dict.insert("color", "green");
         dict.insert("shape", "square");
+        dict.insert("pet", "dog");
+
 
         // let found = *dict.get("greeting").unwrap();
         // assert_eq!(found, "hello");
