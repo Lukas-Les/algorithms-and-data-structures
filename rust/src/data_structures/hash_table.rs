@@ -1,4 +1,4 @@
-use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, fmt::Debug, io::Cursor, ops::Deref};
+use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, fmt::Debug, io::Cursor, ops::Deref, thread::current};
 
 use hashing::Hashable;
 
@@ -102,20 +102,22 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
     pub fn delete(&mut self, key: K) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let mut current_entry = &mut self.table[index];
-        if let Some(mut head) = current_entry.take() {
-            if head.key == key {
-                *current_entry = head.next.take();
-            } else {
-                let mut cursor = &mut head;
-                while let Some(next) = cursor.next.as_mut() {
-                    if next.key == key {
-                        cursor.next = next.next.take();
-                        break;
-                    }
-                    cursor = next;
+        match current_entry {
+            Some(head) => {
+                if head.next.is_none() {
+                    *current_entry = None;
+                    return;
                 }
-                *current_entry = Some(head);
-            }
+                let mut previous = head;
+                let mut cursor = &mut head.next;
+                while let Some(ref mut entry) = cursor {
+                    if entry.key == key {
+                        previous.next = entry.next.take();
+                    }
+                }
+                
+            },
+            None => {return;}
         }
     }
 
