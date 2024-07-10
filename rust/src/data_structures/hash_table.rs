@@ -104,22 +104,34 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         let mut current_entry = &mut self.table[index];
         match current_entry {
             Some(head) => {
-                if head.next.is_none() {
-                    *current_entry = None;
+                if head.key == key {
+                    if head.next.is_none() {
+                        *current_entry = None;
+                        return;
+                    }
+                    *current_entry = head.next.take();
                     return;
                 }
-                let mut previous = head;
-                let mut cursor = &mut head.next;
-                while let Some(ref mut entry) = cursor {
-                    if entry.key == key {
-                        previous.next = entry.next.take();
-                    }
-                }
-                
+
             },
-            None => {return;}
+            //     let mut cursor = head;
+            //     loop {
+            //         if cursor.key == key {
+            //             new_entry.next = cursor.next.take();
+            //             *cursor = new_entry;
+            //             return;
+            //         }
+            //         if cursor.next.is_none() {
+            //             cursor.next = Some(new_entry);
+            //             return;
+            //         }
+            //         cursor = cursor.next.as_mut().unwrap();
+            //     }
+            // },
+            None => {return;},
         }
     }
+    
 
     pub fn print(&self) -> () {
         for (index, entry) in self.table.iter().enumerate() {
@@ -163,7 +175,7 @@ mod tests {
         dict.insert("shape", "square");
         dict.insert("pet", "dog");
 
-
+        dict.delete("greeting");
         // let found = *dict.get("greeting").unwrap();
         // assert_eq!(found, "hello");
 
