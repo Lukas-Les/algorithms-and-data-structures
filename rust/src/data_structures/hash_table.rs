@@ -99,6 +99,16 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         None
     }
 
+    fn find_node(key: K, prev: &mut Option<Box<Entry<K, V>>>, cursor: &mut Option<Box<Entry<K, V>>>) {
+        while let Some(entry) = cursor {
+            if entry.key == key {
+                if let Some(p) = prev {
+                    p.next = entry.next.take();
+                }
+            }
+        }
+    }
+
     pub fn delete(&mut self, key: K) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let mut current_entry = &mut self.table[index];
@@ -112,22 +122,8 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
                     *current_entry = head.next.take();
                     return;
                 }
-
+                Self::find_node(key, current_entry, &mut head.next);
             },
-            //     let mut cursor = head;
-            //     loop {
-            //         if cursor.key == key {
-            //             new_entry.next = cursor.next.take();
-            //             *cursor = new_entry;
-            //             return;
-            //         }
-            //         if cursor.next.is_none() {
-            //             cursor.next = Some(new_entry);
-            //             return;
-            //         }
-            //         cursor = cursor.next.as_mut().unwrap();
-            //     }
-            // },
             None => {return;},
         }
     }
