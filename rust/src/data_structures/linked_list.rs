@@ -1,9 +1,12 @@
-use std::{fmt::Debug, thread::current};
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::fmt::Debug;
 
+type Link<T> = Option<Rc<RefCell<Node<T>>>>;
 
 struct Node<T> {
     value: Option<T>,
-    next: Option<Box<Node<T>>>
+    next: Link<T>
 }
 
 impl <T: Debug> Node<T> {
@@ -17,28 +20,25 @@ impl <T: Debug> Node<T> {
 
 
 struct LinkedList<T> {
-    head: Option<Box<Node<T>>>
+    head: Link<T>
 }
 
 impl <T: Debug> LinkedList <T>{
     pub fn new() -> Self {
-        Self {
-            head: None,
-        }
+        Self { head: None }
     }
 
-    pub fn insert(&mut self, item: T) {
-        let new_node = Some(Box::new(Node::new(Some(item))));
-        let mut current = &mut self.head;
-
-        while let Some(ref mut boxed_node) = &current {
-            if boxed_node.next.is_none() {
-                boxed_node.next = new_node;
-                return;
-            }
-            current = &mut boxed_node.next;
+    pub fn append(&mut self, value: T) {
+        let new_node = Rc::new(RefCell::new(Node::new(Some(value))));
+        // if self.head.is_none() {
+        //     self.head = Some(new_node);
+        // }
+        match &self.head {
+            Some(head) => {
+                // To do
+            },
+            None => {self.head = Some(new_node)}
         }
-        *current = new_node;
     }
 }
 
