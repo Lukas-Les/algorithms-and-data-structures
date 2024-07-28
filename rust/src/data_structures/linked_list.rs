@@ -1,3 +1,4 @@
+use std::clone;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Debug;
@@ -30,15 +31,19 @@ impl <T: Debug> LinkedList <T>{
 
     pub fn append(&mut self, value: T) {
         let new_node = Rc::new(RefCell::new(Node::new(Some(value))));
-        // if self.head.is_none() {
-        //     self.head = Some(new_node);
-        // }
-        match &self.head {
-            Some(head) => {
-                // To do
-            },
-            None => {self.head = Some(new_node)}
+        if self.head.is_none() {
+            self.head = Some(new_node);
         }
+        let mut cursor = &self.head.unwrap();
+        // match &self.head {
+        //     Some(head) => {
+        //         let mut cursor = &Rc::clone(head);
+        //         while let Some(next) = cursor.borrow_mut().next {
+        //             cursor = &next;
+        //         }
+        //     },
+        //     None => {self.head = Some(new_node)}
+        // }
     }
 }
 
