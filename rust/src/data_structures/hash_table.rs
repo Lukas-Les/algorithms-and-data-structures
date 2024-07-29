@@ -1,4 +1,4 @@
-use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, fmt::Debug, io::Cursor, ops::Deref, thread::current};
+use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, borrow::BorrowMut, fmt::Debug, io::Cursor, ops::Deref, thread::current};
 
 use hashing::Hashable;
 
@@ -99,36 +99,6 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         None
     }
 
-    fn find_node(key: K, prev: &mut Option<Box<Entry<K, V>>>, cursor: &mut Option<Box<Entry<K, V>>>) {
-        while let Some(entry) = cursor {
-            if entry.key == key {
-                if let Some(p) = prev {
-                    p.next = entry.next.take();
-                }
-            }
-        }
-    }
-
-    pub fn delete(&mut self, key: K) -> () {
-        let index: usize = key.hash() as usize % TABLE_SIZE;
-        let mut current_entry = &mut self.table[index];
-        match current_entry {
-            Some(head) => {
-                if head.key == key {
-                    if head.next.is_none() {
-                        *current_entry = None;
-                        return;
-                    }
-                    *current_entry = head.next.take();
-                    return;
-                }
-                Self::find_node(key, current_entry, &mut head.next);
-            },
-            None => {return;},
-        }
-    }
-    
-
     pub fn print(&self) -> () {
         for (index, entry) in self.table.iter().enumerate() {
             print!("{}\t", index);
@@ -171,11 +141,6 @@ mod tests {
         dict.insert("shape", "square");
         dict.insert("pet", "dog");
 
-        dict.delete("greeting");
-        // let found = *dict.get("greeting").unwrap();
-        // assert_eq!(found, "hello");
-
-        // dict.delete("greeting");
         dict.print();
     }
 }
