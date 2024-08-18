@@ -1,113 +1,72 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-
-type Link = Option<Rc<RefCell<Node>>>;
 
 struct Node {
     name: char,
     value: Option<String>,
-    next: Link,
+    children: Vec<Box<Node>>,
 }
 
+
 impl Node {
-    pub fn new(name: char) -> Self {
-        Self {
-            name,
+    fn new(name: char) -> Self {
+        Node {
+            name: name,
             value: None,
-            next: None,
+            children: Vec::new(),
         }
+    }
+
+    fn get_child_mut(&mut self, name: char) -> Option<&mut Box<Node>> {
+        self.children.iter_mut().find(|node| node.name == name)
     }
 }
 
+
 struct Tree {
-    root: Link,
+    root: Option<Box<Node>>,
 }
 
 impl Tree {
-    pub fn new() -> Self {
-        Self {
+    fn new() -> Self {
+        Tree {
             root: None,
         }
     }
 
-    fn append_recursive(&self, mut path: Vec<char>, mut previous: Link) {
+    fn insert_recursive(mut path: &str, value: &str, mut current_node: &mut Box<Node>) {
         if path.is_empty() {
+            current_node.value = Some(value.to_string());
             return;
         }
-        let first_char = path.remove(0);
-        let new_node = Rc::new(RefCell::new(Node::new(first_char)));
-
-        match previous {
-            Some(node) => {
-                let mut node_borrowed = node.borrow_mut();
-                if node_borrowed.next.is_none() {
-                    node_borrowed.next = Some(new_node.clone());
-                }
-                self.append_recursive(path, node_borrowed.next.clone());
-            }
-            None => {},
-        }
-    }
-
-    pub fn append(&mut self, path: &str, value: String) {
-        let mut path_vec: Vec<char> = path.chars().collect();
-
-        // If the tree is empty, initialize the root
-        if self.root.is_none() {
-            if let Some(first_char) = path_vec.get(0) {
-                let root_node = Rc::new(RefCell::new(Node::new(*first_char)));
-                self.root = Some(root_node.clone());
-                path_vec.remove(0); // Remove the first character as it's now the root
-                self.append_recursive(path_vec, Some(root_node));
-            }
+        let first_char = path.chars().next().unwrap();
+        path = &path[1..];
+        if let Some(child) = current_node.get_child_mut(first_char) {
+            Self::insert_recursive(path, value, child)
         } else {
-            self.append_recursive(path_vec, self.root.clone());
-        }
-
-        // Set the value of the last node
-        let mut current = self.root.clone();
-        for char in path.chars() {
-            if let Some(current_node) = current.clone() {
-                let mut current_borrowed = current_node.borrow_mut();
-                if current_borrowed.name == char {
-                    if current_borrowed.next.is_some() {
-                        current = current_borrowed.next.clone();
-                    } else {
-                        current_borrowed.value = Some(value.clone());
-                        break;
-                    }
-                }
-            }
+            current_node.children.push(Box::new(Node::new(first_char)));
         }
     }
+
+    fn insert(&mut self, mut path: &str, value: &str) {
+        if self.root.is_none() {
+            let first_char = path.chars().next().unwrap();
+            path = &path[1..];
+            let new_node = Box::new(Node::new(first_char));
+            self.root = Some(new_node);
+        }
+        
+        let mut current_node = self.root.as_mut().unwrap();
+        Self::insert_recursive(path, value, current_node);
+    }
+    
 }
 
-#[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
-    fn test_tree() {
-        let mut ch_tree = Tree::new();
-        ch_tree.append("abc", "value1".to_string());
-
-        // You can add assertions to verify the structure of the tree and the values
-        if let Some(root) = ch_tree.root.clone() {
-            let root_borrowed = root.borrow();
-            assert_eq!(root_borrowed.name, 'a');
-            assert!(root_borrowed.value.is_none());
-            
-            if let Some(next) = &root_borrowed.next {
-                let next_borrowed = next.borrow();
-                assert_eq!(next_borrowed.name, 'b');
-                assert!(next_borrowed.value.is_none());
-                
-                if let Some(next_next) = &next_borrowed.next {
-                    let next_next_borrowed = next_next.borrow();
-                    assert_eq!(next_next_borrowed.name, 'c');
-                    assert_eq!(next_next_borrowed.value.as_ref().unwrap(), "value1");
-                }
-            }
-        }
+    fn test_node() {
+        let mut node = Node::new('a');
+        node.children.push(Box::new(Node::new('b')));
+        assert_eq!(node.get_child_mut('b').unwrap().name, 'b');
     }
 }
