@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-
 struct Node {
     children: HashMap<char, Node>,
     value: Option<String>,
@@ -15,16 +14,13 @@ impl Node {
     }
 }
 
-
 pub struct Trie {
     root: Node,
 }
 
 impl Trie {
     pub fn new() -> Trie {
-        Trie {
-            root: Node::new(),
-        }
+        Trie { root: Node::new() }
     }
 
     fn find_node_as_ref(&self, path: &str) -> Option<&Node> {
@@ -49,17 +45,22 @@ impl Trie {
         Some(current_node)
     }
 
-    pub fn insert(&mut self, path: &str, value: &str, replace: bool) -> Result<(), String>{
+    pub fn insert(&mut self, path: &str, value: &str, replace: bool) -> Result<(), String> {
         let mut current_node = &mut self.root;
         for c in path.chars() {
-            current_node = current_node.children.entry(c).or_insert_with(|| Node::new());
+            current_node = current_node
+                .children
+                .entry(c)
+                .or_insert_with(|| Node::new());
         }
         if replace {
             current_node.value = Some(value.to_string());
             return Ok(());
         }
         match &current_node.value {
-            Some(exs_value) => Err(format!("Cannot insert: path '{path}' is already occupied with '{exs_value}'")),
+            Some(exs_value) => Err(format!(
+                "Cannot insert: path '{path}' is already occupied with '{exs_value}'"
+            )),
             None => {
                 current_node.value = Some(value.to_string());
                 Ok(())
@@ -91,24 +92,22 @@ impl Trie {
                         node.children.remove(&c);
                     }
                     Ok(())
-                },
+                }
                 err => err,
             }
         } else {
             Err("Path doesn't exist".to_string())
         }
-
     }
 
     pub fn remove(&mut self, path: &str) -> Result<(), String> {
         if path.is_empty() {
-            return Err("Path cannot be empty".to_string())
+            return Err("Path cannot be empty".to_string());
         }
         let path_chars: Vec<char> = path.chars().collect();
         Self::recursive_remove(&mut self.root, &path_chars.as_slice())
     }
 }
-
 
 #[cfg(test)]
 mod tests {

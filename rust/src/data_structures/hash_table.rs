@@ -1,4 +1,7 @@
-use std::{arch::x86_64::_MM_FROUND_CUR_DIRECTION, borrow::BorrowMut, fmt::Debug, io::Cursor, ops::Deref, thread::current};
+use std::{
+    arch::x86_64::_MM_FROUND_CUR_DIRECTION, borrow::BorrowMut, fmt::Debug, io::Cursor, ops::Deref,
+    thread::current,
+};
 
 use hashing::Hashable;
 
@@ -14,7 +17,6 @@ pub mod hashing {
         }
         hash
     }
-
 
     pub trait Hashable {
         fn hash(&self) -> u64;
@@ -35,14 +37,13 @@ pub mod hashing {
 
 const TABLE_SIZE: usize = 3;
 
-
 struct Entry<K, V> {
     key: K,
     value: V,
     next: Option<Box<Entry<K, V>>>,
 }
 
-impl <K, V> Entry<K, V> {
+impl<K, V> Entry<K, V> {
     fn new(key: K, value: V) -> Self {
         Self {
             key,
@@ -56,7 +57,7 @@ struct HashTable<K, V: Debug> {
     table: [Option<Box<Entry<K, V>>>; TABLE_SIZE],
 }
 
-impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
+impl<K: Hashable + Eq, V: Debug> HashTable<K, V> {
     pub fn new() -> Self {
         Self {
             table: [(); TABLE_SIZE].map(|_| None),
@@ -65,7 +66,7 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
 
     pub fn insert(&mut self, key: K, value: V) -> () {
         let index: usize = key.hash() as usize % TABLE_SIZE;
-        let mut new_entry = Box::new(Entry::new(key,value));
+        let mut new_entry = Box::new(Entry::new(key, value));
         let current_entry = &mut self.table[index];
         match current_entry {
             Some(head) => {
@@ -82,12 +83,12 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
                     }
                     cursor = cursor.next.as_mut().unwrap();
                 }
-            },
+            }
             None => *current_entry = Some(new_entry),
         }
     }
 
-    pub fn get(&self, key: K) -> Option<&V>{
+    pub fn get(&self, key: K) -> Option<&V> {
         let index: usize = key.hash() as usize % TABLE_SIZE;
         let mut current_entry = &self.table[index];
         while let Some(entry) = current_entry {
@@ -111,7 +112,6 @@ impl <K: Hashable + Eq, V: Debug> HashTable<K, V> {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

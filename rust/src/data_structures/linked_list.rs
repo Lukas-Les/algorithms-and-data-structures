@@ -5,7 +5,7 @@ struct Node<T> {
     next: Option<Box<Node<T>>>,
 }
 
-impl <T: Debug> Node<T> {
+impl<T: Debug> Node<T> {
     pub fn new(value: Option<T>) -> Self {
         Self {
             value: value,
@@ -14,18 +14,20 @@ impl <T: Debug> Node<T> {
     }
 }
 
-
 struct SinglyLinkedList<T> {
-    head: Option<Box<Node<T>>>
+    head: Option<Box<Node<T>>>,
 }
 
-impl <T: Debug> SinglyLinkedList <T>{
+impl<T: Debug> SinglyLinkedList<T> {
     pub fn new() -> Self {
         Self { head: None }
     }
 
     pub fn append(&mut self, value: T) {
-        let new_node = Box::new(Node{ value: Some(value), next: None });
+        let new_node = Box::new(Node {
+            value: Some(value),
+            next: None,
+        });
         match self.head {
             Some(ref mut node) => {
                 let mut current = node.as_mut();
@@ -33,8 +35,10 @@ impl <T: Debug> SinglyLinkedList <T>{
                     current = next.as_mut();
                 }
                 current.next = Some(new_node);
-            },
-            None => {self.head = Some(new_node);},
+            }
+            None => {
+                self.head = Some(new_node);
+            }
         }
     }
 }
@@ -49,6 +53,9 @@ mod tests {
         list.append("first");
         list.append("second");
         assert_eq!(list.head.as_ref().unwrap().value, Some("first"));
-        assert_eq!(list.head.as_ref().unwrap().next.as_ref().unwrap().value, Some("second"));
+        assert_eq!(
+            list.head.as_ref().unwrap().next.as_ref().unwrap().value,
+            Some("second")
+        );
     }
 }
