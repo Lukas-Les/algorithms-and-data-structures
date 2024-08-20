@@ -7,6 +7,7 @@ struct Node {
 
 impl Node {
     fn new(name: char) -> Self {
+        println!("creating new node: {}", &name);
         Node {
             name: name,
             value: None,
@@ -14,7 +15,7 @@ impl Node {
         }
     }
 
-    fn get_child(&self, name: char) -> Option<&Box<Node>> {
+    fn get_child_ref(&self, name: char) -> Option<&Box<Node>> {
         self.children.iter().find(|&node| node.name == name)
     }
 
@@ -23,12 +24,12 @@ impl Node {
     }
 }
 
-struct Tree {
+pub struct Tree {
     root: Vec<Box<Node>>,
 }
 
 impl Tree {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Tree { root: Vec::new() }
     }
 
@@ -42,7 +43,6 @@ impl Tree {
         if let Some(child) = current_node.get_child_mut(first_char) {
             Self::insert_recursive(path, value, child)
         } else {
-            println!("pushing new node: {}", &first_char);
             current_node.children.push(Box::new(Node::new(first_char)));
             Self::insert_recursive(path, value, current_node.children.last_mut().unwrap())
         }
@@ -52,9 +52,10 @@ impl Tree {
         let first_char = path.chars().next().unwrap();
         path = &path[1..];
         if self.root.is_empty() {
-            println!("pushing new node: {}", &first_char);
             let new_node = Box::new(Node::new(first_char));
             self.root.push(new_node);
+            Self::insert_recursive(path, value, self.root.iter_mut().last().unwrap());
+            return;
         }
 
         if let Some(current_node) = self.root.iter_mut().find(|n| n.name == first_char) {
@@ -62,7 +63,7 @@ impl Tree {
         }
     }
 
-    fn get(&self, mut path: &str) -> Option<String> {
+    pub fn get(&self, mut path: &str) -> Option<String> {
         if self.root.is_empty() {
             return None;
         }
@@ -70,15 +71,9 @@ impl Tree {
         path = &path[1..];
         let mut current_node = self.root.iter().find(|&n| n.name == first_char)?;
         while !path.is_empty() {
-            println!("-----");
-            println!("Node: {}", &current_node.name);
-            print!("Children: ");
-            current_node.children.iter().for_each(|n| print!("{} ", &n.name));
-            print!("\n");
-            println!("first char: {}", &first_char);
-            println!("-----");
+            let first_char = path.chars().next().unwrap();
             path = &path[1..];
-            if let Some(child) = current_node.get_child(first_char) {
+            if let Some(child) = current_node.get_child_ref(first_char) {
                 current_node = child;
             };
         }
@@ -100,10 +95,10 @@ mod tests {
     fn test_tree() {
         let mut tree = Tree::new();
         tree.insert("abc", "ABC");
-        // tree.insert("aab", "AAB");
+        tree.insert("aab", "AAB");
         // tree.insert("bac", "BAC");
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
-        // assert_eq!(tree.get("aab").unwrap(), "AAB".to_string());
+        assert_eq!(tree.get("aab").unwrap(), "AAB".to_string());
         // assert_eq!(tree.get("bac").unwrap(), "BAC".to_string());
     }
 }
