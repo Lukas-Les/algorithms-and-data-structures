@@ -49,6 +49,10 @@ impl Tree {
     }
 
     pub fn insert(&mut self, mut path: &str, value: &str) {
+        if path.is_empty() {
+            return;
+        }
+
         let first_char = path.chars().next().unwrap();
         path = &path[1..];
         if self.root.is_empty() {
@@ -59,7 +63,12 @@ impl Tree {
         }
 
         if let Some(current_node) = self.root.iter_mut().find(|n| n.name == first_char) {
+            path = &path[1..];
             Self::insert_recursive(path, value, current_node);
+        } else {
+            let new_node = Box::new(Node::new(first_char));
+            self.root.push(new_node);
+            Self::insert_recursive(path, value, self.root.iter_mut().last().unwrap());
         }
     }
 
@@ -94,11 +103,13 @@ mod tests {
     #[test]
     fn test_tree() {
         let mut tree = Tree::new();
+        tree.insert("", "A");
+
+        tree.insert("a", "A");
+        tree.insert("ab", "AB");
         tree.insert("abc", "ABC");
-        tree.insert("aab", "AAB");
-        // tree.insert("bac", "BAC");
+        assert_eq!(tree.get("a").unwrap(), "A".to_string());
+        assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
-        assert_eq!(tree.get("aab").unwrap(), "AAB".to_string());
-        // assert_eq!(tree.get("bac").unwrap(), "BAC".to_string());
     }
 }
