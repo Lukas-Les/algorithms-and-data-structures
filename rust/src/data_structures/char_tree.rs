@@ -63,7 +63,6 @@ impl Tree {
         }
 
         if let Some(current_node) = self.root.iter_mut().find(|n| n.name == first_char) {
-            path = &path[1..];
             Self::insert_recursive(path, value, current_node);
         } else {
             let new_node = Box::new(Node::new(first_char));
@@ -91,6 +90,8 @@ impl Tree {
 }
 
 mod tests {
+    use crate::data_structures::trie;
+
     use super::*;
 
     #[test]
@@ -108,8 +109,10 @@ mod tests {
         tree.insert("a", "A");
         tree.insert("ab", "AB");
         tree.insert("abc", "ABC");
+        tree.insert("edc", "EDC");
         assert_eq!(tree.get("a").unwrap(), "A".to_string());
         assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
+        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
     }
 }
