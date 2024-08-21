@@ -16,7 +16,7 @@ impl Node {
     }
 
     fn get_child_ref(&self, name: char) -> Option<&Box<Node>> {
-        self.children.iter().find(|&node| node.name == name)
+        self.children.iter().find(|node| node.name == name)
     }
 
     fn get_child_mut(&mut self, name: char) -> Option<&mut Box<Node>> {
