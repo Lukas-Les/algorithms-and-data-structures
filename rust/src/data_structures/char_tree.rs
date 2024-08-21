@@ -87,6 +87,32 @@ impl Tree {
         }
         current_node.value.clone()
     }
+
+    pub fn delete(&mut self, mut path: &str) {
+        if self.root.is_empty() || path.is_empty() {
+            return;
+        }
+        let path_clone = path.to_string();
+        let first_char = path.chars().next().unwrap();
+        path = &path[1..];
+        let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char){
+            Some(node) => node,
+            None => {return;},
+        };
+        let mut no_other_childs_count: u32 = 0;
+        while !path.is_empty() {
+            if current_node.children.is_empty() {
+                no_other_childs_count += 1;
+            }
+            let first_char = path.chars().next().unwrap();
+            path = &path[1..];
+            current_node = match current_node.get_child_mut(first_char){
+                Some(node) => node,
+                None => {return;},
+            };
+        }
+        current_node.value = None;
+    }
 }
 
 mod tests {
@@ -114,5 +140,8 @@ mod tests {
         assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
         assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
+
+        tree.delete("abc");
+        assert_eq!(tree.get("abc"), None);
     }
 }
