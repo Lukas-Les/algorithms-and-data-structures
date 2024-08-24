@@ -1,8 +1,5 @@
 use std::env::current_exe;
 
-/// The Tree struct allows you to store &str values on a provided char path;
-/// Use insert(path: &str, value: &str) to insert value and
-/// get(path: &str) to retireve it.
 
 #[derive(Debug)]
 struct Node {
@@ -30,6 +27,9 @@ impl Node {
     }
 }
 
+/// The Tree struct allows you to store &str values on a provided char path;
+/// Use insert(path: &str, value: &str) to insert value and
+/// get(path: &str) to retireve it.
 pub struct Tree {
     root: Vec<Box<Node>>,
 }
@@ -53,7 +53,8 @@ impl Tree {
             Self::insert_recursive(path, value, current_node.children.last_mut().unwrap())
         }
     }
-
+    
+    /// Inserts given valia to a given path.
     pub fn insert(&mut self, mut path: &str, value: &str) {
         if path.is_empty() {
             return;
