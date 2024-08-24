@@ -1,4 +1,16 @@
-use std::env::current_exe;
+//! This module provides a Char Tree - structure, that lets you to store and retrieve a given value to a given path.
+//! Example:
+//! ```
+//! use rust::data_structures::char_tree::Tree;
+//! 
+//! let mut tree = Tree::new();
+//! tree.insert("mypath", "somevalue");
+//! let result = tree.get("mypath").unwrap();
+//! assert_eq!(result, "somevalue");
+//! tree.delete("mypath");
+//! assert_eq!(tree.get("mypath"), None);
+//! ```
+
 
 
 #[derive(Debug)]
@@ -27,6 +39,7 @@ impl Node {
     }
 }
 
+
 /// The Tree struct allows you to store &str values on a provided char path;
 /// Use insert(path: &str, value: &str) to insert value and
 /// get(path: &str) to retireve it.
@@ -53,7 +66,7 @@ impl Tree {
             Self::insert_recursive(path, value, current_node.children.last_mut().unwrap())
         }
     }
-    
+
     /// Inserts given valia to a given path.
     pub fn insert(&mut self, mut path: &str, value: &str) {
         if path.is_empty() {
@@ -78,7 +91,7 @@ impl Tree {
         }
     }
 
-    /// This method gets a value from given path.
+    /// This method gets a value from a given path.
     pub fn get(&self, mut path: &str) -> Option<String> {
         if self.root.is_empty() {
             return None;
@@ -96,8 +109,8 @@ impl Tree {
         current_node.value.clone()
     }
 
-    /// First, this method shallow delets value, while counting childless nodes,
-    /// and after that it can deep delete empty nodes;
+    /// While shallow deleting value from a targeted path, this methot counts childless nodes,
+    /// and after that it can easily deep delete empty nodes;
     pub fn delete(&mut self, mut path: &str) {
         if self.root.is_empty() || path.is_empty() {
             return;
