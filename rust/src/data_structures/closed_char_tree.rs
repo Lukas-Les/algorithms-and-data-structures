@@ -1,22 +1,71 @@
-//! This module provides a Char Tree - structure, that lets you to store and retrieve a given value to a given path.
-//! Example:
-//! ```
-//! use rust::data_structures::char_tree::Tree;
+//! Closed Char Tree is like Char Tree, but all possible values are predifined as an enum.
 //! 
-//! let mut tree = Tree::new();
-//! tree.insert("mypath", "somevalue");
-//! let result = tree.get("mypath").unwrap();
-//! assert_eq!(result, "somevalue");
-//! tree.deep_delete("mypath");
-//! assert_eq!(tree.get("mypath"), None);
+//! ```
+//! use rust::data_structures::closed_char_tree::{ClosedTree, Vehicle, CarType};
+//! 
+//! let mut tree = ClosedTree::new();
+//! tree.insert("ABC", &Vehicle::Car(CarType::Nissan));
+//! tree.insert("ABCD", &Vehicle::Car(CarType::Infiniti));
+//! let result = tree.get("ABC").unwrap();
+//! println!("ABC is a WMI for {} ", result);
+//! assert_eq!(result, &Vehicle::Car(CarType::Nissan));
+//! tree.deep_delete("ABC");
+//! assert_eq!(tree.get("ABC"), None);
 //! ```
 
+use core::fmt;
+
+
+#[derive(Debug, PartialEq)]
+pub enum CarType {
+    Audi,
+    Bmw,
+    Nissan,
+    Infiniti,
+    Mercedes,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum MotorcycleType {
+    HarleyDavidson,
+    Suzuki,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TruckType {
+    Iveco,
+    Scania,
+    Mercedes,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Vehicle {
+    Car(CarType),
+    Motorcycle(MotorcycleType),
+    Truck(TruckType),
+}
+
+impl fmt::Display for Vehicle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Vehicle::Car(CarType::Audi) => write!(f, "Audi"),
+            Vehicle::Car(CarType::Bmw) => write!(f, "BMW"),
+            Vehicle::Car(CarType::Infiniti) => write!(f, "Infiniti"),
+            Vehicle::Car(CarType::Nissan) => write!(f, "Nissan"),
+            Vehicle::Car(CarType::Mercedes) => write!(f, "Mercedes-Benz"),
+            Vehicle::Motorcycle(MotorcycleType::HarleyDavidson) => write!(f, "Harley-Davidson"),
+            Vehicle::Motorcycle(MotorcycleType::Suzuki) => write!(f, "Suzuki"),
+            Vehicle::Truck(TruckType::Iveco) => write!(f, "Iveco"),
+            Vehicle::Truck(_) => write!(f, "Some other truck"),
+        }
+    }
+}
 
 
 #[derive(Debug)]
-struct Node {
+struct Node{
     name: char,
-    value: Option<String>,
+    value: Option<&'static Vehicle>,
     children: Vec<Box<Node>>,
 }
 
@@ -43,18 +92,18 @@ impl Node {
 /// The Tree struct allows you to store &str values on a provided char path;
 /// Use insert(path: &str, value: &str) to insert value and
 /// get(path: &str) to retireve it.
-pub struct Tree {
+pub struct ClosedTree {
     root: Vec<Box<Node>>,
 }
 
-impl Tree {
+impl ClosedTree {
     pub fn new() -> Self {
-        Tree { root: Vec::new() }
+        ClosedTree { root: Vec::new() }
     }
 
-    fn insert_recursive(mut path: &str, value: &str, mut current_node: &mut Box<Node>) {
+    fn insert_recursive(mut path: &str, value: &'static Vehicle, mut current_node: &mut Box<Node>) {
         if path.is_empty() {
-            current_node.value = Some(value.to_string());
+            current_node.value = Some(value);
             return;
         }
         let first_char = path.chars().next().unwrap();
@@ -68,7 +117,7 @@ impl Tree {
     }
 
     /// Inserts given valia to a given path.
-    pub fn insert(&mut self, mut path: &str, value: &str) {
+    pub fn insert(&mut self, mut path: &str, value: &'static Vehicle) {
         if path.is_empty() {
             return;
         }
@@ -92,7 +141,7 @@ impl Tree {
     }
 
     /// This method gets a value from a given path.
-    pub fn get(&self, mut path: &str) -> Option<String> {
+    pub fn get(&self, mut path: &str) -> Option<&'static Vehicle> {
         if self.root.is_empty() {
             return None;
         }
@@ -106,7 +155,7 @@ impl Tree {
                 current_node = child;
             };
         }
-        current_node.value.clone()
+        current_node.value
     }
 
     /// This a legacy shallow delete method, use deep_delete() instead.
@@ -183,32 +232,37 @@ mod tests {
 
     #[test]
     fn test_tree() {
-        let mut tree = Tree::new();
-        tree.insert("", "A");
+        let mut tree = ClosedTree::new();
+        tree.insert("", &Vehicle::Car(CarType::Audi));
 
-        tree.insert("a", "A");
-        tree.insert("ab", "AB");
-        tree.insert("abc", "ABC");
-        tree.insert("abcde", "ABCDE");
-        tree.insert("aba", "ABA");
-        tree.insert("edc", "EDC");
-        assert_eq!(tree.get("a").unwrap(), "A".to_string());
-        assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
-        assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
-        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
-        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
+        tree.insert("abc", &Vehicle::Car(CarType::Audi));
+        tree.insert("ab", &Vehicle::Motorcycle(MotorcycleType::Suzuki));
+        tree.insert("abc", &Vehicle::Car(CarType::Bmw));
+        tree.insert("abcde", &Vehicle::Truck(TruckType::Iveco));
+        tree.insert("aba", &Vehicle::Car(CarType::Mercedes));
+        tree.insert("edc", &Vehicle::Car(CarType::Infiniti));
+        tree.insert("edcb", &Vehicle::Car(CarType::Nissan));
+
+        assert_eq!(tree.get("a"), None);
+        assert_eq!(tree.get("ab").unwrap(), &Vehicle::Motorcycle(MotorcycleType::Suzuki));
+        assert_eq!(tree.get("abc").unwrap(), &Vehicle::Car(CarType::Bmw));
+        assert_eq!(tree.get("aba").unwrap(), &Vehicle::Car(CarType::Mercedes));
+        assert_eq!(tree.get("edc").unwrap(), &Vehicle::Car(CarType::Infiniti));
+        assert_eq!(tree.get("edcb").unwrap(), &Vehicle::Car(CarType::Nissan));
+
 
         tree.deep_delete("ab");
         tree.deep_delete("abc");
         tree.deep_delete("abcd");
         tree.deep_delete("abcde");
 
-        assert_eq!(tree.get("a").unwrap(), "A".to_string());
+        assert_eq!(tree.get("a"), None);
         assert_eq!(tree.get("ab"), None);
         assert_eq!(tree.get("abc"), None);
         assert_eq!(tree.get("abcd"), None);
         assert_eq!(tree.get("abcde"), None);
-        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
-        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
+        assert_eq!(tree.get("aba").unwrap(), &Vehicle::Car(CarType::Mercedes));
+        assert_eq!(tree.get("edc").unwrap(), &Vehicle::Car(CarType::Infiniti));
+        assert_eq!(tree.get("edcb").unwrap(), &Vehicle::Car(CarType::Nissan));
     }
 }
