@@ -152,7 +152,40 @@ impl Tree {
 
 
     }
+
+    pub fn deep_delete(&mut self, path: &str) {
+        // Start deletion from the root nodes
+        for node in self.root.iter_mut() {
+            if Self::deep_delete_recursive(node, path) {
+                break;
+            }
+        }
+    }
+
+    fn deep_delete_recursive(node: &mut Box<Node>, mut path: &str) -> bool {
+        if path.is_empty() {
+            // Base case: Path fully traversed, remove the value.
+            return false; // Indicates that the node itself should not be deleted.
+        }
+
+        let first_char = path.chars().next().unwrap();
+        path = &path[1..];
+
+        if let Some(next) = node.get_child_mut(first_char) {      
+            if Self::deep_delete_recursive(next, path) {
+                // If the child node is no longer needed (returned true), remove it
+                let pos = node.children.iter().position(|n| n.name == first_char).unwrap();
+                node.children.remove(pos);
+            }
+            
+            // If node has no value and no children, it can be deleted
+            return node.value.is_none() && node.children.is_empty();
+        }
+
+        false // Node with the specified path was not found
+    }
 }
+
 
 mod tests {
     use crate::data_structures::trie;
@@ -180,7 +213,7 @@ mod tests {
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
         assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
 
-        tree.delete("abc");
+        tree.deep_delete("abc");
         assert_eq!(tree.get("abc"), None);
     }
 }
