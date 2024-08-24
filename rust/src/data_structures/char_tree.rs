@@ -1,3 +1,6 @@
+use std::env::current_exe;
+
+
 #[derive(Debug)]
 struct Node {
     name: char,
@@ -88,6 +91,7 @@ impl Tree {
         current_node.value.clone()
     }
 
+
     pub fn delete(&mut self, mut path: &str) {
         if self.root.is_empty() || path.is_empty() {
             return;
@@ -99,9 +103,9 @@ impl Tree {
             Some(node) => node,
             None => {return;},
         };
-        let mut no_other_childs_count: u32 = 0;
+        let mut no_other_childs_count: usize = 0;
         while !path.is_empty() {
-            if current_node.children.is_empty() {
+            if current_node.children.len() == 1 {
                 no_other_childs_count += 1;
             }
             let first_char = path.chars().next().unwrap();
@@ -112,6 +116,22 @@ impl Tree {
             };
         }
         current_node.value = None;
+
+        // TODO:  deep deletion
+        // let mut path = &path_clone[0..=no_other_childs_count];
+        // let first_char = path.chars().next().unwrap();
+        // path = &path[1..];
+        // current_node = self.root.iter_mut().find(|n| n.name == first_char).unwrap();
+
+        // for c in path.chars() {
+        //     current_node = current_node.get_child_mut(c).unwrap();
+        // }
+
+        // let mut prev = current_node;
+        // let mut current_node = prev.children.last_mut().unwrap();
+        // let mut next = current_node.children.last().unwrap();
+
+
     }
 }
 
