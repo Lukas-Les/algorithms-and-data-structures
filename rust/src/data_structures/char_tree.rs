@@ -1,5 +1,8 @@
 use std::env::current_exe;
 
+/// The Tree struct allows you to store &str values on a provided char path;
+/// Use insert(path: &str, value: &str) to insert value and
+/// get(path: &str) to retireve it.
 
 #[derive(Debug)]
 struct Node {
@@ -74,6 +77,7 @@ impl Tree {
         }
     }
 
+    /// This method gets a value from given path.
     pub fn get(&self, mut path: &str) -> Option<String> {
         if self.root.is_empty() {
             return None;
@@ -91,7 +95,8 @@ impl Tree {
         current_node.value.clone()
     }
 
-
+    /// First, this method shallow delets value, while counting childless nodes,
+    /// and after that it can deep delete empty nodes;
     pub fn delete(&mut self, mut path: &str) {
         if self.root.is_empty() || path.is_empty() {
             return;
