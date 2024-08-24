@@ -109,24 +109,18 @@ impl Tree {
         current_node.value.clone()
     }
 
-    /// While shallow deleting value from a targeted path, this methot counts childless nodes,
-    /// and after that it can easily deep delete empty nodes;
-    pub fn delete(&mut self, mut path: &str) {
+    /// This a legacy shallow delete method, use deep_delete() instead.
+    pub fn shallow_delete(&mut self, mut path: &str) {
         if self.root.is_empty() || path.is_empty() {
             return;
         }
-        let path_clone = path.to_string();
         let first_char = path.chars().next().unwrap();
         path = &path[1..];
         let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char){
             Some(node) => node,
             None => {return;},
         };
-        let mut no_other_childs_count: usize = 0;
         while !path.is_empty() {
-            if current_node.children.len() == 1 {
-                no_other_childs_count += 1;
-            }
             let first_char = path.chars().next().unwrap();
             path = &path[1..];
             current_node = match current_node.get_child_mut(first_char){
@@ -135,37 +129,25 @@ impl Tree {
             };
         }
         current_node.value = None;
-
-        // TODO:  deep deletion
-        // let mut path = &path_clone[0..=no_other_childs_count];
-        // let first_char = path.chars().next().unwrap();
-        // path = &path[1..];
-        // current_node = self.root.iter_mut().find(|n| n.name == first_char).unwrap();
-
-        // for c in path.chars() {
-        //     current_node = current_node.get_child_mut(c).unwrap();
-        // }
-
-        // let mut prev = current_node;
-        // let mut current_node = prev.children.last_mut().unwrap();
-        // let mut next = current_node.children.last().unwrap();
-
-
     }
 
-    pub fn deep_delete(&mut self, path: &str) {
+    /// This is the main method for deletions. It deletes not just values, but not used nodes as well.
+    pub fn deep_delete(&mut self, mut path: &str) {
+        if path.is_empty() {
+            return;
+        }
         // Start deletion from the root nodes
-        for node in self.root.iter_mut() {
-            if Self::deep_delete_recursive(node, path) {
-                break;
-            }
+        let first_char = path.chars().next().unwrap();
+        path = &path[1..];
+        if let Some(node) = self.root.iter_mut().find(|n| n.name == first_char) {
+            Self::deep_delete_recursive(node, path);
         }
     }
 
     fn deep_delete_recursive(node: &mut Box<Node>, mut path: &str) -> bool {
         if path.is_empty() {
-            // Base case: Path fully traversed, remove the value.
-            return false; // Indicates that the node itself should not be deleted.
+            node.value = None;
+            return node.children.is_empty();
         }
 
         let first_char = path.chars().next().unwrap();
@@ -207,13 +189,26 @@ mod tests {
         tree.insert("a", "A");
         tree.insert("ab", "AB");
         tree.insert("abc", "ABC");
+        tree.insert("abcde", "ABCDE");
+        tree.insert("aba", "ABA");
         tree.insert("edc", "EDC");
         assert_eq!(tree.get("a").unwrap(), "A".to_string());
         assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
         assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
+        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
         assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
 
+        tree.deep_delete("ab");
         tree.deep_delete("abc");
+        tree.deep_delete("abcd");
+        tree.deep_delete("abcde");
+
+        assert_eq!(tree.get("a").unwrap(), "A".to_string());
+        assert_eq!(tree.get("ab"), None);
         assert_eq!(tree.get("abc"), None);
+        assert_eq!(tree.get("abcd"), None);
+        assert_eq!(tree.get("abcde"), None);
+        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
+        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
     }
 }
