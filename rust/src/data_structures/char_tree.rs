@@ -6,7 +6,10 @@
 //! let mut tree = Tree::new();
 //! tree.insert("mypath", "somevalue");
 //! let result = tree.get("mypath").unwrap();
+//! let other_result = tree.hit("mypathbutlonger").unwrap();
+//! 
 //! assert_eq!(result, "somevalue");
+//! assert_eq!(other_result, "somevalue");
 //! tree.deep_delete("mypath");
 //! assert_eq!(tree.get("mypath"), None);
 //! ```
@@ -93,7 +96,7 @@ impl Tree {
 
     /// This method gets a value from a given path.
     pub fn get(&self, mut path: &str) -> Option<String> {
-        if self.root.is_empty() {
+        if self.root.is_empty() || path.is_empty() {
             return None;
         }
         let first_char = path.chars().next().unwrap();
@@ -104,6 +107,28 @@ impl Tree {
             path = &path[1..];
             if let Some(child) = current_node.get_child_ref(first_char) {
                 current_node = child;
+            } else {
+                return None;
+            };
+        }
+        current_node.value.clone()
+    }
+
+    /// Like get(), but returns last value early if needed.
+    pub fn hit(&self, mut path: &str) -> Option<String> {
+        if self.root.is_empty() || path.is_empty() {
+            return None;
+        }
+        let first_char = path.chars().next().unwrap();
+        path = &path[1..];
+        let mut current_node = self.root.iter().find(|&n| n.name == first_char)?;
+        while !path.is_empty() {
+            let first_char = path.chars().next().unwrap();
+            path = &path[1..];
+            if let Some(child) = current_node.get_child_ref(first_char) {
+                current_node = child;
+            } else {
+                break;
             };
         }
         current_node.value.clone()
@@ -170,8 +195,6 @@ impl Tree {
 
 
 mod tests {
-    use crate::data_structures::trie;
-
     use super::*;
 
     #[test]
@@ -182,9 +205,27 @@ mod tests {
     }
 
     #[test]
-    fn test_tree() {
+    fn test_insert_and_get() {
         let mut tree = Tree::new();
         tree.insert("", "A");
+
+        tree.insert("a", "A");
+        tree.insert("ab", "AB");
+        assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
+        assert_eq!(tree.get(""), None);
+        assert_eq!(tree.get("abc"), None);
+    }
+
+    #[test]
+    fn test_insert_and_hit() {
+        let mut tree = Tree::new();
+        tree.insert("foo", "bar");
+        assert_eq!(tree.hit("foobar").unwrap(), "bar".to_string());
+    }
+
+    #[test]
+    fn test_deep_delete() {
+        let mut tree = Tree::new();
 
         tree.insert("a", "A");
         tree.insert("ab", "AB");
