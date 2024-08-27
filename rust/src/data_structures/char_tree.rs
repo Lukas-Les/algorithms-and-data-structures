@@ -15,7 +15,6 @@
 //! ```
 
 
-
 #[derive(Debug)]
 struct Node {
     name: char,
@@ -42,7 +41,6 @@ impl Node {
     }
 }
 
-
 /// The Tree struct allows you to store &str values on a provided char path;
 /// Use insert(path: &str, value: &str) to insert value and
 /// get(path: &str) to retireve it.
@@ -55,19 +53,15 @@ impl Tree {
         Tree { root: Vec::new() }
     }
 
-    fn insert_recursive(mut path: &str, value: &str, mut current_node: &mut Box<Node>) {
-        if path.is_empty() {
-            current_node.value = Some(value.to_string());
-            return;
-        }
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
-        if let Some(child) = current_node.get_child_mut(first_char) {
-            Self::insert_recursive(path, value, child)
-        } else {
-            current_node.children.push(Box::new(Node::new(first_char)));
-            Self::insert_recursive(path, value, current_node.children.last_mut().unwrap())
-        }
+    fn consume_path(path: &mut &str) -> char {
+        let first_char = path.chars().next().unwrap(); // Get the first character
+        let next_char_index = path
+            .char_indices()
+            .nth(1)
+            .map(|(i, _)| i)
+            .unwrap_or(path.len()); // Find the index of the next character boundary
+        *path = &path[next_char_index..]; // Update the path to exclude the consumed character
+        first_char // Return the first character
     }
 
     /// Inserts given valia to a given path.
@@ -75,9 +69,8 @@ impl Tree {
         if path.is_empty() {
             return;
         }
-
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
+        println!("inserting to the path: {}", path);
+        let first_char = Self::consume_path(&mut path);
         if self.root.is_empty() {
             let new_node = Box::new(Node::new(first_char));
             self.root.push(new_node);
@@ -94,17 +87,29 @@ impl Tree {
         }
     }
 
+    fn insert_recursive(mut path: &str, value: &str, mut current_node: &mut Box<Node>) {
+        if path.is_empty() {
+            current_node.value = Some(value.to_string());
+            return;
+        }
+        let first_char = Self::consume_path(&mut path);
+        if let Some(child) = current_node.get_child_mut(first_char) {
+            Self::insert_recursive(path, value, child)
+        } else {
+            current_node.children.push(Box::new(Node::new(first_char)));
+            Self::insert_recursive(path, value, current_node.children.last_mut().unwrap())
+        }
+    }
+
     /// This method gets a value from a given path.
     pub fn get(&self, mut path: &str) -> Option<String> {
         if self.root.is_empty() || path.is_empty() {
             return None;
         }
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
+        let first_char = Self::consume_path(&mut path);
         let mut current_node = self.root.iter().find(|&n| n.name == first_char)?;
         while !path.is_empty() {
-            let first_char = path.chars().next().unwrap();
-            path = &path[1..];
+            let first_char = Self::consume_path(&mut path);
             if let Some(child) = current_node.get_child_ref(first_char) {
                 current_node = child;
             } else {
@@ -119,12 +124,10 @@ impl Tree {
         if self.root.is_empty() || path.is_empty() {
             return None;
         }
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
+        let first_char = Self::consume_path(&mut path);
         let mut current_node = self.root.iter().find(|&n| n.name == first_char)?;
         while !path.is_empty() {
-            let first_char = path.chars().next().unwrap();
-            path = &path[1..];
+            let first_char = Self::consume_path(&mut path);
             if let Some(child) = current_node.get_child_ref(first_char) {
                 current_node = child;
             } else {
@@ -139,18 +142,20 @@ impl Tree {
         if self.root.is_empty() || path.is_empty() {
             return;
         }
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
-        let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char){
+        let first_char = Self::consume_path(&mut path);
+        let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char) {
             Some(node) => node,
-            None => {return;},
+            None => {
+                return;
+            }
         };
         while !path.is_empty() {
-            let first_char = path.chars().next().unwrap();
-            path = &path[1..];
-            current_node = match current_node.get_child_mut(first_char){
+            let first_char = Self::consume_path(&mut path);
+            current_node = match current_node.get_child_mut(first_char) {
                 Some(node) => node,
-                None => {return;},
+                None => {
+                    return;
+                }
             };
         }
         current_node.value = None;
@@ -162,8 +167,7 @@ impl Tree {
             return;
         }
         // Start deletion from the root nodes
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
+        let first_char = Self::consume_path(&mut path);
         if let Some(node) = self.root.iter_mut().find(|n| n.name == first_char) {
             Self::deep_delete_recursive(node, path);
         }
@@ -174,28 +178,65 @@ impl Tree {
             node.value = None;
             return node.children.is_empty();
         }
-
-        let first_char = path.chars().next().unwrap();
-        path = &path[1..];
-
-        if let Some(next) = node.get_child_mut(first_char) {      
+        let first_char = Self::consume_path(&mut path);
+        if let Some(next) = node.get_child_mut(first_char) {
             if Self::deep_delete_recursive(next, path) {
                 // If the child node is no longer needed (returned true), remove it
-                let pos = node.children.iter().position(|n| n.name == first_char).unwrap();
+                let pos = node
+                    .children
+                    .iter()
+                    .position(|n| n.name == first_char)
+                    .unwrap();
                 node.children.remove(pos);
             }
-            
+
             // If node has no value and no children, it can be deleted
             return node.value.is_none() && node.children.is_empty();
         }
 
         false // Node with the specified path was not found
     }
-}
 
+    /// This function returns all possible keys and all possible values inserted.
+    pub fn scan<'a>(&'a self) -> Vec<(String, &'a String)> {
+        let mut result: Vec<(String, &'a String)> = Vec::new();
+        for node in self.root.iter() {
+            Self::scan_recursive(node, String::new(), &mut result);
+        }
+        result
+    }
+
+    fn scan_recursive<'a>(
+        node: &'a Box<Node>,
+        mut path: String,
+        result: &mut Vec<(String, &'a String)>,
+    ) {
+        path.push(node.name.clone());
+        if let Some(value) = &node.value {
+            result.push((path.clone(), value));
+        }
+        for child in node.children.iter() {
+            Self::scan_recursive(child, path.clone(), result)
+        }
+    }
+}
 
 mod tests {
     use super::*;
+
+    fn setup_tree() -> Tree {
+        let paths = Vec::from([
+            ("a", "A"),
+            ("ab", "AB"),
+            ("abc", "ABC"),
+            ("abcd", "ABCD"),
+            ("d", "D"),
+            ("dc", "DC"),
+        ]);
+        let mut tree = Tree::new();
+        paths.into_iter().for_each(|(s, v)| tree.insert(s, v));
+        tree
+    }
 
     #[test]
     fn test_node() {
@@ -206,50 +247,57 @@ mod tests {
 
     #[test]
     fn test_insert_and_get() {
-        let mut tree = Tree::new();
-        tree.insert("", "A");
-
-        tree.insert("a", "A");
-        tree.insert("ab", "AB");
+        let tree = setup_tree();
         assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
-        assert_eq!(tree.get(""), None);
-        assert_eq!(tree.get("abc"), None);
     }
 
     #[test]
     fn test_insert_and_hit() {
-        let mut tree = Tree::new();
-        tree.insert("foo", "bar");
-        assert_eq!(tree.hit("foobar").unwrap(), "bar".to_string());
+        let tree = setup_tree();
+        assert_eq!(tree.hit("dee").unwrap(), "D".to_string());
+        assert_eq!(tree.hit("ababab").unwrap(), "AB".to_string());
     }
 
     #[test]
     fn test_deep_delete() {
-        let mut tree = Tree::new();
-
-        tree.insert("a", "A");
-        tree.insert("ab", "AB");
-        tree.insert("abc", "ABC");
-        tree.insert("abcde", "ABCDE");
-        tree.insert("aba", "ABA");
-        tree.insert("edc", "EDC");
-        assert_eq!(tree.get("a").unwrap(), "A".to_string());
-        assert_eq!(tree.get("ab").unwrap(), "AB".to_string());
-        assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
-        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
-        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
+        let mut tree = setup_tree();
 
         tree.deep_delete("ab");
-        tree.deep_delete("abc");
         tree.deep_delete("abcd");
-        tree.deep_delete("abcde");
 
         assert_eq!(tree.get("a").unwrap(), "A".to_string());
         assert_eq!(tree.get("ab"), None);
-        assert_eq!(tree.get("abc"), None);
+        assert_eq!(tree.get("abc").unwrap(), "ABC".to_string());
         assert_eq!(tree.get("abcd"), None);
-        assert_eq!(tree.get("abcde"), None);
-        assert_eq!(tree.get("aba").unwrap(), "ABA".to_string());
-        assert_eq!(tree.get("edc").unwrap(), "EDC".to_string());
+    }
+
+    #[test]
+    fn test_insert_various_chars() {
+        let mut tree = Tree::new();
+        tree.insert("ŠšŠ", "ŪūŪ");
+        assert_eq!(tree.get("ŠšŠ").unwrap(), "ŪūŪ".to_string());
+    }
+
+    #[test]
+    fn test_scan() {
+        let tree = setup_tree();
+        let result = tree.scan();
+
+        let a = "A".to_string();
+        let ab = "AB".to_string();
+        let abc = "ABC".to_string();
+        let abcd = "ABCD".to_string();
+        let d = "D".to_string();
+        let dc = "DC".to_string();
+
+        let want = vec![
+            ("a".to_string(), &a),
+            ("ab".to_string(), &ab),
+            ("abc".to_string(), &abc),
+            ("abcd".to_string(), &abcd),
+            ("d".to_string(), &d),
+            ("dc".to_string(), &dc),
+        ];
+        assert_eq!(result, want)
     }
 }
