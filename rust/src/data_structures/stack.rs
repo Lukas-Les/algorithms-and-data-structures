@@ -1,24 +1,22 @@
 use std::u8;
 
-const SIZE: usize = 3;
-
 
 #[derive(Debug)]
-struct Stack {
-    items: [u8; SIZE], 
+struct Stack <const N: usize> {
+    items: [u8; N], 
     top: usize,
 }
 
-impl Stack {
-    pub fn new() -> Self {
+impl <const N: usize> Stack <N> {
+    pub const fn new() -> Self {
         Self {
-            items: [0; SIZE],
+            items: [0; N],
             top: 0,
         }
     }
 
     pub fn push(&mut self, value: u8) -> Result<(), &str> {
-        if self.top + 1 > SIZE {
+        if self.top + 1 > self.items.len() {
             return Err("Stack overflow");
         }
         self.items[self.top] = value;
@@ -42,7 +40,7 @@ impl Stack {
 mod tests {
     use super::*;
     
-    fn prepare_stack() -> Stack {
+    fn prepare_stack() -> Stack<3> {
         let mut stack = Stack::new();
         (0..3).for_each(|i| {
             stack.push(i).expect("failed to push to test stack");
