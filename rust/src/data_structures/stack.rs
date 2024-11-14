@@ -1,6 +1,3 @@
-use std::u8;
-
-
 #[derive(Debug)]
 struct Stack <const N: usize> {
     items: [u8; N], 
@@ -34,11 +31,15 @@ impl <const N: usize> Stack <N> {
         self.top -= 1;
         Some(top_item)
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.top == 0        
+    }
 }
 
 
 mod tests {
-    use super::*;
+    use super::Stack;
     
     fn prepare_stack() -> Stack<3> {
         let mut stack = Stack::new();
@@ -67,4 +68,9 @@ mod tests {
         assert_eq!(poped, Some(2));
     }
 
+    #[test]
+    fn test_is_empty() {
+        let stack = Stack::<2>::new();
+        assert_eq!(stack.is_empty(), true);
+    }
 }
