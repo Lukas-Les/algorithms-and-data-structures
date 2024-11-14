@@ -39,6 +39,13 @@ impl <const N: usize> Stack <N> {
     pub fn is_full(&self) -> bool {
         self.top == self.items.len()
     }
+
+    pub fn peek(&self) -> Option<u8> {
+        if self.top == 0 {
+            return None;
+        }
+        return Some(self.items[self.top + 1]);
+    }
 }
 
 
@@ -89,4 +96,11 @@ mod tests {
         stack.pop();
         assert_eq!(stack.is_full(), false);
     }
+
+    #[test]
+    fn test_peek() {
+        let stack = prepare_stack();
+        assert_eq!(stack.peek(), Some(3));
+    }
+
 }
