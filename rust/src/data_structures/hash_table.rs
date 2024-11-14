@@ -1,8 +1,3 @@
-use std::{
-    arch::x86_64::_MM_FROUND_CUR_DIRECTION, borrow::BorrowMut, fmt::Debug, io::Cursor, ops::Deref,
-    thread::current,
-};
-
 use hashing::Hashable;
 
 pub mod hashing {
@@ -53,11 +48,11 @@ impl<K, V> Entry<K, V> {
     }
 }
 
-struct HashTable<K, V: Debug> {
+struct HashTable<K, V: std::fmt::Debug> {
     table: [Option<Box<Entry<K, V>>>; TABLE_SIZE],
 }
 
-impl<K: Hashable + Eq, V: Debug> HashTable<K, V> {
+impl<K: Hashable + Eq, V: std::fmt::Debug> HashTable<K, V> {
     pub fn new() -> Self {
         Self {
             table: [(); TABLE_SIZE].map(|_| None),
