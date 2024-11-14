@@ -35,6 +35,10 @@ impl <const N: usize> Stack <N> {
     pub fn is_empty(&self) -> bool {
         self.top == 0        
     }
+    
+    pub fn is_full(&self) -> bool {
+        self.top == self.items.len()
+    }
 }
 
 
@@ -70,7 +74,19 @@ mod tests {
 
     #[test]
     fn test_is_empty() {
-        let stack = Stack::<2>::new();
+        let mut stack = Stack::<2>::new();
         assert_eq!(stack.is_empty(), true);
+
+        stack.push(6).expect("failed to push");
+        assert_eq!(stack.is_empty(), false);
+    }
+
+    #[test]
+    fn test_is_full() {
+        let mut stack = prepare_stack();
+        assert_eq!(stack.is_full(), true);
+
+        stack.pop();
+        assert_eq!(stack.is_full(), false);
     }
 }
