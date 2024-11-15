@@ -1,8 +1,8 @@
 //! Closed Char Tree is like Char Tree, but all possible values are predifined as an enum.
-//! 
+//!
 //! ```
 //! use rust::data_structures::closed_char_tree::{ClosedTree, Vehicle, CarType};
-//! 
+//!
 //! let mut tree = ClosedTree::new();
 //! tree.insert("ABC", &Vehicle::Car(CarType::Nissan));
 //! tree.insert("ABCD", &Vehicle::Car(CarType::Infiniti));
@@ -14,7 +14,6 @@
 //! ```
 
 use core::fmt;
-
 
 #[derive(Debug, PartialEq)]
 pub enum CarType {
@@ -61,9 +60,8 @@ impl fmt::Display for Vehicle {
     }
 }
 
-
 #[derive(Debug)]
-struct Node{
+struct Node {
     name: char,
     value: Option<&'static Vehicle>,
     children: Vec<Box<Node>>,
@@ -87,7 +85,6 @@ impl Node {
         self.children.iter_mut().find(|node| node.name == name)
     }
 }
-
 
 /// The Tree struct allows you to store &str values on a provided char path;
 /// Use insert(path: &str, value: &str) to insert value and
@@ -165,16 +162,20 @@ impl ClosedTree {
         }
         let first_char = path.chars().next().unwrap();
         path = &path[1..];
-        let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char){
+        let mut current_node = match self.root.iter_mut().find(|n| n.name == first_char) {
             Some(node) => node,
-            None => {return;},
+            None => {
+                return;
+            }
         };
         while !path.is_empty() {
             let first_char = path.chars().next().unwrap();
             path = &path[1..];
-            current_node = match current_node.get_child_mut(first_char){
+            current_node = match current_node.get_child_mut(first_char) {
                 Some(node) => node,
-                None => {return;},
+                None => {
+                    return;
+                }
             };
         }
         current_node.value = None;
@@ -202,13 +203,17 @@ impl ClosedTree {
         let first_char = path.chars().next().unwrap();
         path = &path[1..];
 
-        if let Some(next) = node.get_child_mut(first_char) {      
+        if let Some(next) = node.get_child_mut(first_char) {
             if Self::deep_delete_recursive(next, path) {
                 // If the child node is no longer needed (returned true), remove it
-                let pos = node.children.iter().position(|n| n.name == first_char).unwrap();
+                let pos = node
+                    .children
+                    .iter()
+                    .position(|n| n.name == first_char)
+                    .unwrap();
                 node.children.remove(pos);
             }
-            
+
             // If node has no value and no children, it can be deleted
             return node.value.is_none() && node.children.is_empty();
         }
@@ -216,7 +221,6 @@ impl ClosedTree {
         false // Node with the specified path was not found
     }
 }
-
 
 mod tests {
     use crate::data_structures::trie;
@@ -244,12 +248,14 @@ mod tests {
         tree.insert("edcb", &Vehicle::Car(CarType::Nissan));
 
         assert_eq!(tree.get("a"), None);
-        assert_eq!(tree.get("ab").unwrap(), &Vehicle::Motorcycle(MotorcycleType::Suzuki));
+        assert_eq!(
+            tree.get("ab").unwrap(),
+            &Vehicle::Motorcycle(MotorcycleType::Suzuki)
+        );
         assert_eq!(tree.get("abc").unwrap(), &Vehicle::Car(CarType::Bmw));
         assert_eq!(tree.get("aba").unwrap(), &Vehicle::Car(CarType::Mercedes));
         assert_eq!(tree.get("edc").unwrap(), &Vehicle::Car(CarType::Infiniti));
         assert_eq!(tree.get("edcb").unwrap(), &Vehicle::Car(CarType::Nissan));
-
 
         tree.deep_delete("ab");
         tree.deep_delete("abc");

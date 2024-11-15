@@ -2,18 +2,17 @@
 //! Example:
 //! ```
 //! use rust::data_structures::char_tree::Tree;
-//! 
+//!
 //! let mut tree = Tree::new();
 //! tree.insert("mypath", "somevalue");
 //! let result = tree.get("mypath").unwrap();
 //! let other_result = tree.hit("mypathbutlonger").unwrap();
-//! 
+//!
 //! assert_eq!(result, "somevalue");
 //! assert_eq!(other_result, "somevalue");
 //! tree.deep_delete("mypath");
 //! assert_eq!(tree.get("mypath"), None);
 //! ```
-
 
 #[derive(Debug)]
 struct Node {
