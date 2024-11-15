@@ -7,34 +7,34 @@ mod oo {
     }
 
 
-    pub struct Stack<const N: usize> {
-        items: [u8; N],
+    pub struct Stack<T, const N: usize> {
+        items: [Option<T>; N],
         top: usize,
     }
 
-    impl<const N: usize> Stack<N> {
-        pub  fn new() -> Self {
+    impl<T, const N: usize> Stack<T, N> {
+        pub fn new() -> Self {
             Self {
-                items: [0; N],
+                items: [(); N].map(|_| None),
                 top: 0,
             }
         }
 
-        pub fn push(&mut self, value: u8) -> Result<(), StackError> {
+        pub fn push(&mut self, value: T) -> Result<(), StackError> {
             if self.top >= self.items.len() {
                 return Err(StackError::Overflow);
             }
-            self.items[self.top] = value;
+            self.items[self.top] = Some(value);
             self.top += 1;
             Ok(())
         }
 
-        pub fn pop(&mut self) -> Result<u8, StackError> {
+        pub fn pop(&mut self) -> Result<T, StackError> {
             if self.top < 1 {
                 return Err(StackError::Underflow);
             }
             self.top -= 1;
-            Ok(self.items[self.top])
+            self.items[self.top].take().ok_or(StackError::Underflow)
         }
 
         pub fn is_empty(&self) -> bool {
@@ -45,11 +45,11 @@ mod oo {
             self.top == self.items.len()
         }
 
-        pub fn peek(&self) -> Option<u8> {
+        pub fn peek(&self) -> Option<&T> {
             if self.top == 0 {
                 return None;
             }
-            Some(self.items[self.top - 1])
+            self.items[self.top - 1].as_ref()
         }
     }
 }
@@ -101,8 +101,8 @@ mod tests {
     use super::oo::Stack;
     use super::f::*;
 
-    fn prepare_oo_stack() -> Stack<3> {
-        let mut stack = Stack::new();
+    fn prepare_oo_stack() -> Stack<u8, 3> {
+        let mut stack = Stack::<u8, 3>::new();
         (0..3).for_each(|i| {
             stack.push(i).expect("failed to push to test stack");
         });
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn test_oo_push() {
         let mut stack = prepare_oo_stack();
-        assert_eq!(stack.peek(), Some(2));
+        assert_eq!(stack.peek(), Some(2).as_ref());
 
         match stack.push(7) {
             Ok(()) => panic!("Expected an overflow"),
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_oo_is_empty() {
-        let mut stack = Stack::<2>::new();
+        let mut stack = Stack::<u8, 2>::new();
         assert_eq!(stack.is_empty(), true);
 
         stack.push(6).expect("failed to push");
@@ -148,7 +148,7 @@ mod tests {
     #[test]
     fn test_oo_peek() {
         let stack = prepare_oo_stack();
-        assert_eq!(stack.peek(), Some(2));
+        assert_eq!(stack.peek(), Some(2).as_ref());
     }
 
     #[test]
