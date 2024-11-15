@@ -48,11 +48,11 @@ mod oo {
 }
 
 mod f {
-    pub fn create_stack<const N: usize>() -> (usize, [u8; N]) {
+    pub fn stack_new<const N: usize>() -> (usize, [u8; N]) {
         (0, [0; N])
     }
 
-    pub fn push_to_stack<const N: usize>(stack: &mut (usize, [u8; N]), value: u8) -> Result<(), &str> {
+    pub fn stack_push<const N: usize>(stack: &mut (usize, [u8; N]), value: u8) -> Result<(), &str> {
         let (top, items) = stack;
         if *top + 1 > items.len() {
             return Err("Stack overflow");
@@ -62,7 +62,7 @@ mod f {
         Ok(())
     }
 
-    pub fn pop_from_stack<const N: usize>(stack: &mut (usize, [u8; N])) -> Option<u8> {
+    pub fn stack_pop<const N: usize>(stack: &mut (usize, [u8; N])) -> Option<u8> {
         let (top, items) = stack;
         if *top == 0 {
             return None;
@@ -144,37 +144,37 @@ mod tests {
 
     #[test]
     fn test_f_push() {
-        let mut stack = create_stack::<3>();
-        push_to_stack(&mut stack, 6).expect("failed to push");
+        let mut stack = stack_new::<3>();
+        stack_push(&mut stack, 6).expect("failed to push");
     }
 
     #[test]
     fn test_f_pop() {
-        let mut stack = create_stack::<3>();
-        push_to_stack(&mut stack, 6).expect("failed to push");
-        assert_eq!(pop_from_stack(&mut stack), Some(6));
+        let mut stack = stack_new::<3>();
+        stack_push(&mut stack, 6).expect("failed to push");
+        assert_eq!(stack_pop(&mut stack), Some(6));
     }
 
     #[test]
     fn test_f_is_empty() {
-        let mut stack = create_stack::<3>();
+        let mut stack = stack_new::<3>();
         assert_eq!(stack_is_empty(&stack), true);
-        push_to_stack(&mut stack, 6).expect("failed to push");
+        stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_is_empty(&stack), false);
     }
 
     #[test]
     fn test_f_is_full() {
-        let mut stack = create_stack::<1>();
+        let mut stack = stack_new::<1>();
         assert_eq!(stack_is_full(&stack), false);
-        push_to_stack(&mut stack, 6).expect("failed to push");
+        stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_is_full(&stack), true);
     }
 
     #[test]
     fn test_f_peek() {
-        let mut stack = create_stack::<2>();
-        push_to_stack(&mut stack, 6).expect("failed to push");
+        let mut stack = stack_new::<2>();
+        stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_peek(&stack), Some(6));
     }
 }
