@@ -1,33 +1,40 @@
 mod oo {
-    #[derive(Debug)]
+
+    #[derive(Debug, PartialEq)]
+    pub enum StackError {
+        Overflow,
+        Underflow,
+    }
+
+
     pub struct Stack<const N: usize> {
         items: [u8; N],
         top: usize,
     }
 
     impl<const N: usize> Stack<N> {
-        pub const fn new() -> Self {
+        pub  fn new() -> Self {
             Self {
                 items: [0; N],
                 top: 0,
             }
         }
 
-        pub fn push(&mut self, value: u8) -> Result<(), &str> {
-            if self.top + 1 > self.items.len() {
-                return Err("Stack overflow");
+        pub fn push(&mut self, value: u8) -> Result<(), StackError> {
+            if self.top >= self.items.len() {
+                return Err(StackError::Overflow);
             }
             self.items[self.top] = value;
             self.top += 1;
             Ok(())
         }
 
-        pub fn pop(&mut self) -> Option<u8> {
+        pub fn pop(&mut self) -> Result<u8, StackError> {
             if self.top < 1 {
-                return None;
+                return Err(StackError::Underflow);
             }
             self.top -= 1;
-            Some(self.items[self.top])
+            Ok(self.items[self.top])
         }
 
         pub fn is_empty(&self) -> bool {
@@ -55,7 +62,7 @@ mod f {
     pub fn stack_push<const N: usize>(stack: &mut (usize, [u8; N]), value: u8) -> Result<(), &str> {
         let (top, items) = stack;
         if *top + 1 > items.len() {
-            return Err("Stack overflow");
+            return Err("Stack is full");
         }
         items[*top] = value;
         *top += 1;
@@ -89,6 +96,8 @@ mod f {
 
 #[cfg(test)]
 mod tests {
+    use crate::data_structures::stack::oo::StackError;
+
     use super::oo::Stack;
     use super::f::*;
 
@@ -107,7 +116,7 @@ mod tests {
 
         match stack.push(7) {
             Ok(()) => panic!("Expected an overflow"),
-            Err(e) => assert_eq!(e, "Stack overflow"),
+            Err(e) => assert_eq!(e, StackError::Overflow),
         }
     }
 
@@ -115,7 +124,7 @@ mod tests {
     fn test_oo_pop() {
         let mut stack = prepare_oo_stack();
         let poped = stack.pop();
-        assert_eq!(poped, Some(2));
+        assert_eq!(poped, Ok(2));
     }
 
     #[test]
@@ -132,7 +141,7 @@ mod tests {
         let mut stack = prepare_oo_stack();
         assert_eq!(stack.is_full(), true);
 
-        stack.pop();
+        stack.pop().expect("failed to pop");
         assert_eq!(stack.is_full(), false);
     }
 
