@@ -10,8 +10,8 @@ mod oo {
         rear: usize,
         items: [Option<T>; N],
     }
-    
-    impl <T, const N: usize> Queue<T, N> {
+
+    impl<T, const N: usize> Queue<T, N> {
         pub fn new() -> Self {
             Self {
                 front: 0,
@@ -29,7 +29,7 @@ mod oo {
             }
             self.items[self.rear] = Some(item);
             self.rear += 1;
-            
+
             Ok(())
         }
         pub fn dequeue(&mut self) -> Result<T, QueueError> {
@@ -50,7 +50,7 @@ mod oo {
 #[cfg(test)]
 mod tests {
 
-    use super::oo; 
+    use super::oo;
 
     #[test]
     fn test_oo_enqueue() {
@@ -58,7 +58,7 @@ mod tests {
         queue.enqueue(6).expect("failed to enqueue");
         queue.enqueue(6).expect("failed to enqueue");
         queue.enqueue(6).expect("failed to enqueue");
-        
+
         match queue.enqueue(6) {
             Ok(()) => panic!("expected queue to be full"),
             Err(e) => assert_eq!(e, oo::QueueError::Full),
@@ -70,7 +70,7 @@ mod tests {
         let mut queue = oo::Queue::<u8, 3>::new();
         queue.enqueue(6).expect("failed to enqueue");
         queue.enqueue(6).expect("failed to enqueue");
-        
+
         assert_eq!(queue.dequeue(), Ok(6))
     }
 }

@@ -6,7 +6,6 @@ mod oo {
         Underflow,
     }
 
-
     pub struct Stack<T, const N: usize> {
         items: [Option<T>; N],
         top: usize,
@@ -55,7 +54,7 @@ mod oo {
 }
 
 mod f {
-    
+
     type Stack<T, const N: usize> = (usize, [Option<T>; N]);
 
     pub fn stack_new<T, const N: usize>() -> Stack<T, N> {
@@ -95,7 +94,7 @@ mod f {
         if stack.0 == 0 {
             return None;
         }
-        stack.1[stack.0 -1].as_ref()
+        stack.1[stack.0 - 1].as_ref()
     }
 }
 
@@ -103,8 +102,8 @@ mod f {
 mod tests {
     use crate::data_structures::stack::oo::StackError;
 
-    use super::oo::Stack;
     use super::f::*;
+    use super::oo::Stack;
 
     fn prepare_oo_stack() -> Stack<u8, 3> {
         let mut stack = Stack::<u8, 3>::new();
