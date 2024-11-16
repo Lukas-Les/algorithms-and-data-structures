@@ -55,42 +55,47 @@ mod oo {
 }
 
 mod f {
-    pub fn stack_new<const N: usize>() -> (usize, [u8; N]) {
-        (0, [0; N])
+    
+    type Stack<T, const N: usize> = (usize, [Option<T>; N]);
+
+    pub fn stack_new<T, const N: usize>() -> Stack<T, N> {
+        // First tuple item holds top position,
+        // second holds items wrapped into Option type.
+        (0, [(); N].map(|_| None))
     }
 
-    pub fn stack_push<const N: usize>(stack: &mut (usize, [u8; N]), value: u8) -> Result<(), &str> {
+    pub fn stack_push<T, const N: usize>(stack: &mut Stack<T, N>, value: T) -> Result<(), &str> {
         let (top, items) = stack;
         if *top + 1 > items.len() {
             return Err("Stack is full");
         }
-        items[*top] = value;
+        items[*top] = Some(value);
         *top += 1;
         Ok(())
     }
 
-    pub fn stack_pop<const N: usize>(stack: &mut (usize, [u8; N])) -> Option<u8> {
+    pub fn stack_pop<T, const N: usize>(stack: &mut Stack<T, N>) -> Option<T> {
         let (top, items) = stack;
         if *top == 0 {
             return None;
         }
         *top -= 1;
-        Some(items[*top])
+        items[*top].take()
     }
 
-    pub fn stack_is_empty<const N: usize>(stack: &(usize, [u8; N])) -> bool {
+    pub fn stack_is_empty<T, const N: usize>(stack: &Stack<T, N>) -> bool {
         stack.0 == 0
     }
 
-    pub fn stack_is_full<const N: usize>(stack: &(usize, [u8; N])) -> bool {
+    pub fn stack_is_full<T, const N: usize>(stack: &Stack<T, N>) -> bool {
         stack.0 >= stack.1.len()
     }
 
-    pub fn stack_peek<const N: usize>(stack: &(usize, [u8; N])) -> Option<u8> {
+    pub fn stack_peek<T, const N: usize>(stack: &Stack<T, N>) -> Option<&T> {
         if stack.0 == 0 {
             return None;
         }
-        Some(stack.1[stack.0 -1])
+        stack.1[stack.0 -1].as_ref()
     }
 }
 
@@ -153,20 +158,20 @@ mod tests {
 
     #[test]
     fn test_f_push() {
-        let mut stack = stack_new::<3>();
+        let mut stack = stack_new::<u8, 3>();
         stack_push(&mut stack, 6).expect("failed to push");
     }
 
     #[test]
     fn test_f_pop() {
-        let mut stack = stack_new::<3>();
+        let mut stack = stack_new::<u8, 3>();
         stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_pop(&mut stack), Some(6));
     }
 
     #[test]
     fn test_f_is_empty() {
-        let mut stack = stack_new::<3>();
+        let mut stack = stack_new::<u8, 3>();
         assert_eq!(stack_is_empty(&stack), true);
         stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_is_empty(&stack), false);
@@ -174,7 +179,7 @@ mod tests {
 
     #[test]
     fn test_f_is_full() {
-        let mut stack = stack_new::<1>();
+        let mut stack = stack_new::<u8, 1>();
         assert_eq!(stack_is_full(&stack), false);
         stack_push(&mut stack, 6).expect("failed to push");
         assert_eq!(stack_is_full(&stack), true);
@@ -182,8 +187,8 @@ mod tests {
 
     #[test]
     fn test_f_peek() {
-        let mut stack = stack_new::<2>();
+        let mut stack = stack_new::<u8, 2>();
         stack_push(&mut stack, 6).expect("failed to push");
-        assert_eq!(stack_peek(&stack), Some(6));
+        assert_eq!(stack_peek(&stack), Some(6).as_ref());
     }
 }
