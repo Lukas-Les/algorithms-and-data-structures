@@ -74,7 +74,7 @@ mod f {
         queue.1 += 1;
         Ok(())
     }
-    
+
     pub fn queue_dequeue<T, const N: usize>(queue: &mut Queue<T, N>) -> Option<T> {
         if queue.0 == queue.1 {
             return None;
@@ -96,7 +96,6 @@ mod f {
         queue.0 == queue.1
     }
 
-
     pub fn queue_is_full<T, const N: usize>(queue: &Queue<T, N>) -> bool {
         queue.1 == N
     }
@@ -105,12 +104,13 @@ mod f {
 #[cfg(test)]
 mod tests {
 
-    use super::oo;
     use super::f;
+    use super::oo;
     fn setup_queue() -> oo::Queue<String, 3> {
         let arr = ["first", "second", "third"];
         let mut queue = oo::Queue::<String, 3>::new();
-        arr.iter().for_each(|s| queue.enqueue(s.to_string()).expect("failed to enque"));
+        arr.iter()
+            .for_each(|s| queue.enqueue(s.to_string()).expect("failed to enque"));
         queue
     }
 
