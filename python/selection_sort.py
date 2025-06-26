@@ -1,17 +1,13 @@
-def selection_sort(input_list: list) -> list:
-    length = len(input_list)
-    current_min_idx = 0
-    for i in range(length):
-        print(f"i: {i}")
-        for j in range(i + 1, length):
-            print(f"j: {j}")
-            if input_list[current_min_idx] > input_list[j]:
-                current_min_idx = j
-
-        input_list[i], input_list[current_min_idx] = input_list[current_min_idx], input_list[i]
-    return input_list
-
+def selection_sort(nums):
+    for i in range(len(nums)):
+        smallest_idx = i
+        for j in range(smallest_idx + 1, len(nums)):
+            if nums[j] < nums[smallest_idx]:
+                smallest_idx = j
+        nums[i], nums[smallest_idx] = nums[smallest_idx], nums[i]
+    return nums
 
 if __name__ == "__main__":
-    r = selection_sort([5, 9, 1, 8, 3, 7, 2, 4, 6, 0])
+    my_list = [5, 9, 1, 8, 3, 7, 2, 4, 6, 0]
+    r = selection_sort(my_list)
     print(r)
